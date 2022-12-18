@@ -1,11 +1,15 @@
 from dataclasses import dataclass
-from typing import List, TypeVar
+from typing import List, Tuple, TypeVar
 
 import click
 
 import model
 
-all_items = model.load_data("items.yaml").items
+# all_items = model.load_yaml_data("assets/items.yaml").items
+materials = model.load_csv_data("assets/ryza_materials.csv")
+recipes = model.load_csv_data("assets/ryza_recipes.csv")
+
+all_items = materials.items + recipes.items
 
 # A loop is a special kind of sequence where the last item uses the first item
 
@@ -83,24 +87,34 @@ def explain_loop(loop: List[model.Item]) -> str:
     """
 
     # For each pair {item_a} and {item_b}, with b coming after a. Check if {item_a} and {item_b} are used to craft each other.
-    explanation = "- "
+    expl = "- "
     for i in range(len(loop) - 1):
         item_a = loop[i]
         item_b = loop[i + 1]
-        try:
-            relation_a = item_uses_ingredient(item_b, item_a)
-            arrow = ' -> '
-            if explanation != "- ":
-                explanation += click.style('\n    then ', fg='blue')
-            explanation += f"{relation_a.ingredient.Name}" \
-                           f"{click.style(f'[{relation_a.MatchingIngredientRequirement}]', fg='magenta')}" \
-                           f"{click.style(arrow, fg='blue')}" \
-                           f"{click.style(f'[{relation_a.MatchingIngredientType}]', fg='magenta')}" \
-                           f"{relation_a.item.Name}"
-        except ValueError:
-            pass
 
-    return f"{explanation}\n"
+        relation_a = item_uses_ingredient(item_b, item_a)
+        arrow = ' -> '
+        if expl != "- ":
+            expl += click.style('\n    then ', fg='blue')
+        expl += relation_a.ingredient.Name
+        expl += click.style(f'[{relation_a.MatchingIngredientRequirement}]',
+                            fg='magenta')
+        expl += click.style(arrow, fg='blue')
+        expl += click.style(f'[{relation_a.MatchingIngredientType}]',
+                            fg='magenta')
+        expl += relation_a.item.Name
+    # If any of the items in the loop has len(item.Effects) > 0, then add the effects to the explanation
+    if any(len(item.Effects) > 0 for item in loop):
+        expl += '\n\tEffects: '
+        for item in loop:
+            if len(item.Effects) == 0: continue
+            expl += '\n\t\t'
+            expl += item.Name + ': ['
+            expl += click.style(', '.join(item.Effects), fg='yellow')
+            expl += ']'
+
+
+    return f"{expl}\n"
 
 def explain_loop_simplified(loop: List[model.Item]) -> str:
     """
@@ -304,14 +318,42 @@ def cmd_find_all_loops() -> None:
 
 @click.command(name="loops:all-of-size",
                 help="Find all loops of size {--size}")
-@click.option("--size", "-s", prompt_required=True, help="The size of the loops to search for", default=2)
-def cmd_find_all_loops_of_size(size: int) -> None:
-    loops = find_looping_sequences([], size, [], all_items)
+@click.option("--size", "-s", help="The size of the loops to search for",
+              default=2, show_default=True, required=True)
+@click.option("--simplified-output", "-S",
+              help="Simplify the output by only the crafting order",
+              is_flag=True, show_default=True, default=False)
+@click.option("--having-ingredients", "-i",
+                help="Only show loops that have the given ingredients",
+                multiple=True, default=[])
+@click.argument("starting-item-name", required=False, type=str, default=None)
+def cmd_find_all_loops_of_size(size: int, starting_item_name: str | None, simplified_output: bool, having_ingredients: Tuple[str]) -> None:
+    if starting_item_name is not None:
+        starting_item = find_item_named(starting_item_name, all_items)
+        remaining_items = [item for item in all_items if item != starting_item]
+        possible_ending_items = find_ingredients_of(starting_item, remaining_items)
+        loops = find_looping_sequences([starting_item], size, possible_ending_items, remaining_items)
+    else:
+        loops = find_looping_sequences([], size, [], all_items)
+
+    if len(having_ingredients) > 0:
+        def loop_has_ingredients(loop: List[model.Item]) -> bool:
+            for ingredient in having_ingredients:
+                if not any(item.Name == ingredient for item in loop):
+                    return False
+            return True
+        loops = [loop for loop in loops if loop_has_ingredients(loop)]
+
     click.echo(f"Found {len(loops)} loops of size {size}")
 
     # explain the loop by comparing each item to the next item with explain_relation
-    for loop in loops:
-        click.echo(f"{explain_loop(loop)}")
+    if simplified_output:
+        for loop in loops:
+            click.echo(f"{explain_loop_simplified(loop)}")
+    else:
+        for loop in loops:
+            click.echo(f"{explain_loop(loop)}")
+
 
 
 @click.group()

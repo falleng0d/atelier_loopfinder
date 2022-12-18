@@ -37,6 +37,8 @@ def load_csv_data(file: str) -> Model:
     with open(file, newline='') as csvfile:
         reader = csv.DictReader(csvfile, delimiter=',', quotechar='"')
         for row in reader:
+            if "Include" in row and row["Include"] != "X":
+                continue
             item = Item(
                 Name=row['Name'],
                 Type=[],

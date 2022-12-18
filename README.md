@@ -19,6 +19,11 @@ Commands:
   uses    Find all items that uses {--item-name} as ingredient
 ```
 
+###  Configuration
+
+Only recipes with a "X" on the include column of ryza_recipes.csv will be loaded.
+
+This is useful for excluding items that are not craftable in your current playthrough progress.
 
 ## Examples
 

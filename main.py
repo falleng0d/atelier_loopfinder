@@ -333,15 +333,21 @@ def cmd_find_recipe_matches(item_name: str) -> None:
 
 @click.command(name="search",
                 help="Find all items that matches")
+@click.option("--craftable", "-c", default=False, is_flag=True,
+              help="Include only craftable items")
 @click.argument("search_term", nargs=1)
-def cmd_search_items(search_term: str) -> None:
+def cmd_search_items(search_term: str, craftable: bool) -> None:
     is_category = search_term.startswith("(")
+
+    if craftable: search_scope = [item for item in all_items if len(item.Recipe) > 0]
+    else: search_scope = all_items
+
     if is_category:
-        matches = find_items_of_type(search_term, all_items)
+        matches = find_items_of_type(search_term, search_scope)
         click.echo(f"Found {len(matches)} items of type {search_term}")
         click.echo(describe_items(matches))
     else:
-        matches = [item for item in all_items if item.Name == search_term]
+        matches = [item for item in search_scope if item.Name == search_term]
         click.echo(f"Found {len(matches)} items named {search_term}")
         click.echo(describe_items(matches))
 

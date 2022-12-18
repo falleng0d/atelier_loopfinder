@@ -12,6 +12,7 @@ recipes = model.load_csv_data("assets/ryza_recipes.csv")
 all_items = materials.items + recipes.items
 
 # A loop is a special kind of sequence where the last item uses the first item
+# The item type is the same as item category
 
 
 T = TypeVar("T")
@@ -131,6 +132,34 @@ def explain_loop_simplified(loop: List[model.Item]) -> str:
 
     return explanation
 
+def describe_items(items: List[model.Item]) -> str:
+    """
+    Given a list of items, describe each item.
+    """
+    expl = ""
+    for item in items:
+        expl += f"  Name:\t\t{item.Name}\n"
+
+        # Describe the item's types
+        if len(item.Type) > 0:
+            expl += f"  Types:\t{', '.join(item.Type)}\n"
+
+        # Describe the item's recipe
+        if len(item.Recipe) > 0:
+            expl += f"  Recipe:\t{', '.join(item.Recipe)}\n"
+
+        # Describe the item's effects
+        if len(item.Effects) > 0:
+            expl += '  Effects:\t'
+            expl += '['
+            expl += click.style(', '.join(item.Effects), fg='yellow')
+            expl += ']'
+            expl += '\n'
+
+        expl += '\n'
+
+    return expl
+
 def find_item_named(name: str, items: List[model.Item]) -> model.Item:
     """Given a list of items, find the item with the given name"""
     for item in items:
@@ -168,6 +197,14 @@ def find_ingredients_of(item: model.Item, items: List[model.Item]) -> List[model
         for t in item.Recipe:
             if t in i.Type:
                 matches.append(i)
+    return matches
+
+def find_items_of_type(of_type: str, items: List[model.Item]) -> List[model.Item]:
+    """Given a list of items, find all items of the given type."""
+    matches = []
+    for i in items:
+        if of_type in i.Type:
+            matches.append(i)
     return matches
 
 def find_bidireactional_related_items(item: model.Item, items: List[model.Item]) -> List[model.Item]:
@@ -294,17 +331,19 @@ def cmd_find_recipe_matches(item_name: str) -> None:
     for match in matches:
         click.echo(match.Name)
 
-@click.command(name="loops",
-               help="Find all loops of size 1 that start with {--item-name}")
-@click.option("--item-name", "-i", prompt_required=True, help="The item to search for")
-def cmd_find_loops(item_name: str) -> None:
-    item = find_item_named(item_name, all_items)
-    loops = find_bidireactional_related_pairs(item, all_items)
-    click.echo(f"Found {len(loops)} loops that start with {item_name}")
-
-    # explain the loop by comparing each item to the next item with explain_relation
-    for loop in loops:
-        click.echo(f"{explain_relation(loop[0], loop[1])}")
+@click.command(name="search",
+                help="Find all items that matches")
+@click.argument("search_term", nargs=1)
+def cmd_search_items(search_term: str) -> None:
+    is_category = search_term.startswith("(")
+    if is_category:
+        matches = find_items_of_type(search_term, all_items)
+        click.echo(f"Found {len(matches)} items of type {search_term}")
+        click.echo(describe_items(matches))
+    else:
+        matches = [item for item in all_items if item.Name == search_term]
+        click.echo(f"Found {len(matches)} items named {search_term}")
+        click.echo(describe_items(matches))
 
 @click.command(name="loops:all",
                help="Find all loops of size 1")
@@ -329,10 +368,21 @@ def cmd_find_all_loops() -> None:
 @click.argument("starting-item-name", required=False, type=str, default=None)
 def cmd_find_all_loops_of_size(size: int, starting_item_name: str | None, simplified_output: bool, having_ingredients: Tuple[str]) -> None:
     if starting_item_name is not None:
-        starting_item = find_item_named(starting_item_name, all_items)
-        remaining_items = [item for item in all_items if item != starting_item]
-        possible_ending_items = find_ingredients_of(starting_item, remaining_items)
-        loops = find_looping_sequences([starting_item], size, possible_ending_items, remaining_items)
+        is_category = starting_item_name.startswith("(")
+        if not is_category:
+            starting_item = find_item_named(starting_item_name, all_items)
+            remaining_items = [item for item in all_items if item != starting_item]
+            possible_ending_items = find_ingredients_of(starting_item, remaining_items)
+            loops = find_looping_sequences([starting_item], size, possible_ending_items, remaining_items)
+        else:
+            loops = []
+            matching_items = find_items_of_type(starting_item_name, all_items)
+            # Remove uncraftable items (no recipe)
+            matching_items = [item for item in matching_items if len(item.Recipe) > 0]
+            for item in matching_items:
+                remaining_items = [i for i in all_items if i != item]
+                possible_ending_items = find_ingredients_of(item, remaining_items)
+                loops.extend(find_looping_sequences([item], size, possible_ending_items, remaining_items))
     else:
         loops = find_looping_sequences([], size, [], all_items)
 
@@ -362,7 +412,7 @@ def cli() -> None:
 
 
 cli.add_command(cmd_find_recipe_matches)
-cli.add_command(cmd_find_loops)
+cli.add_command(cmd_search_items)
 cli.add_command(cmd_find_all_loops)
 cli.add_command(cmd_find_all_loops_of_size)
 

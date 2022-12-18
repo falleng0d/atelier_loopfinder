@@ -203,7 +203,7 @@ def find_items_of_type(of_type: str, items: List[model.Item]) -> List[model.Item
     """Given a list of items, find all items of the given type."""
     matches = []
     for i in items:
-        if of_type in i.Type:
+        if of_type.lower() in [t.lower() for t in i.Type]:
             matches.append(i)
     return matches
 
@@ -335,19 +335,27 @@ def cmd_find_recipe_matches(item_name: str) -> None:
                 help="Find all items that matches")
 @click.option("--craftable", "-c", default=False, is_flag=True,
               help="Include only craftable items")
-@click.argument("search_term", nargs=1)
-def cmd_search_items(search_term: str, craftable: bool) -> None:
+@click.option("--search-effect", "-e", default=None, help="Search for items with this effect")
+@click.argument("search_term", default="")
+def cmd_search_items(search_term: str, search_effect: str | None, craftable: bool) -> None:
     is_category = search_term.startswith("(")
 
     if craftable: search_scope = [item for item in all_items if len(item.Recipe) > 0]
     else: search_scope = all_items
 
-    if is_category:
+    if search_effect is not None:
+        matches = [item for item in search_scope if any([search_effect.lower() in effect.lower() for effect in item.Effects])]
+        click.echo(f"Found {len(matches)} items of with effect {search_term}\n")
+        click.echo(describe_items(matches))
+    elif is_category:
         matches = find_items_of_type(search_term, search_scope)
         click.echo(f"Found {len(matches)} items of type {search_term}\n")
         click.echo(describe_items(matches))
     else:
-        matches = [item for item in search_scope if search_term.lower() in item.Name.lower()]
+        if search_term == "":
+            matches = search_scope
+        else:
+            matches = [item for item in search_scope if search_term.lower() in item.Name.lower()]
         click.echo(f"Found {len(matches)} items named {search_term}\n")
         click.echo(describe_items(matches))
 

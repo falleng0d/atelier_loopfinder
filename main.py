@@ -138,7 +138,7 @@ def describe_items(items: List[model.Item]) -> str:
     """
     expl = ""
     for item in items:
-        expl += f"  Name:\t\t{item.Name}\n"
+        expl += "  Name:\t\t" + click.style(item.Name, fg='blue') + "\n"
 
         # Describe the item's types
         if len(item.Type) > 0:
@@ -344,11 +344,11 @@ def cmd_search_items(search_term: str, craftable: bool) -> None:
 
     if is_category:
         matches = find_items_of_type(search_term, search_scope)
-        click.echo(f"Found {len(matches)} items of type {search_term}")
+        click.echo(f"Found {len(matches)} items of type {search_term}\n")
         click.echo(describe_items(matches))
     else:
         matches = [item for item in search_scope if item.Name == search_term]
-        click.echo(f"Found {len(matches)} items named {search_term}")
+        click.echo(f"Found {len(matches)} items named {search_term}\n")
         click.echo(describe_items(matches))
 
 @click.command(name="loops:all",

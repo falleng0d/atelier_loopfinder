@@ -106,10 +106,10 @@ def explain_loop(loop: List[model.Item]) -> str:
         expl += relation_a.item.Name
     # If any of the items in the loop has len(item.Effects) > 0, then add the effects to the explanation
     if any(len(item.Effects) > 0 for item in loop):
-        expl += '\n\tEffects: '
+        expl += '\n\n  Items with effects: '
         for item in loop:
             if len(item.Effects) == 0: continue
-            expl += '\n\t\t'
+            expl += '\n    '
             expl += item.Name + ': ['
             expl += click.style(', '.join(item.Effects), fg='yellow')
             expl += ']'

@@ -89,9 +89,10 @@ def explain_loop(loop: List[model.Item]) -> str:
 
     # For each pair {item_a} and {item_b}, with b coming after a. Check if {item_a} and {item_b} are used to craft each other.
     expl = "- "
-    for i in range(len(loop) - 1):
-        item_a = loop[i]
-        item_b = loop[i + 1]
+    round_loop = loop + [loop[0]]
+    for i in range(len(round_loop) - 1):
+        item_a = round_loop[i]
+        item_b = round_loop[i + 1]
 
         relation_a = item_uses_ingredient(item_b, item_a)
         arrow = ' -> '
@@ -327,9 +328,7 @@ def cmd_find_recipe_matches(item_name: str) -> None:
     item = find_item_named(item_name, all_items)
     matches = find_is_used_as_ingredient_of(item, all_items)
     click.echo(f"Found {len(matches)} items that uses {item_name} as ingredient")
-
-    for match in matches:
-        click.echo(match.Name)
+    click.echo(describe_items(matches))
 
 @click.command(name="search",
                 help="Find all items that matches")
@@ -343,11 +342,15 @@ def cmd_search_items(search_term: str, search_effect: str | None, craftable: boo
     if craftable: search_scope = [item for item in all_items if len(item.Recipe) > 0]
     else: search_scope = all_items
 
-    if search_effect is not None:
+    if search_effect is not None and search_term == "":
         matches = [item for item in search_scope if any([search_effect.lower() in effect.lower() for effect in item.Effects])]
         click.echo(f"Found {len(matches)} items of with effect {search_term}\n")
         click.echo(describe_items(matches))
-    elif is_category:
+    if search_effect is not None and search_term != "":
+        search_scope = [item for item in search_scope if
+                   any([search_effect.lower() in effect.lower() for effect in
+                        item.Effects])]
+    if is_category:
         matches = find_items_of_type(search_term, search_scope)
         click.echo(f"Found {len(matches)} items of type {search_term}\n")
         click.echo(describe_items(matches))

@@ -347,7 +347,7 @@ def cmd_search_items(search_term: str, craftable: bool) -> None:
         click.echo(f"Found {len(matches)} items of type {search_term}\n")
         click.echo(describe_items(matches))
     else:
-        matches = [item for item in search_scope if item.Name == search_term]
+        matches = [item for item in search_scope if search_term.lower() in item.Name.lower()]
         click.echo(f"Found {len(matches)} items named {search_term}\n")
         click.echo(describe_items(matches))
 

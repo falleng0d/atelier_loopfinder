@@ -351,17 +351,7 @@ def cmd_search_items(search_term: str, craftable: bool) -> None:
         click.echo(f"Found {len(matches)} items named {search_term}\n")
         click.echo(describe_items(matches))
 
-@click.command(name="loops:all",
-               help="Find all loops of size 1")
-def cmd_find_all_loops() -> None:
-    loops = find_bidirectional_related_pairs(all_items)
-    click.echo(f"Found {len(loops)} loops")
-
-    # explain the loop by comparing each item to the next item with explain_relation
-    for loop in loops:
-        click.echo(f"{explain_relation(loop[0], loop[1])}")
-
-@click.command(name="loops:all-of-size",
+@click.command(name="loops",
                 help="Find all loops of size {--size}")
 @click.option("--size", "-s", help="The size of the loops to search for",
               default=2, show_default=True, required=True)
@@ -411,7 +401,6 @@ def cmd_find_all_loops_of_size(size: int, starting_item_name: str | None, simpli
             click.echo(f"{explain_loop(loop)}")
 
 
-
 @click.group()
 def cli() -> None:
     pass
@@ -419,7 +408,6 @@ def cli() -> None:
 
 cli.add_command(cmd_find_recipe_matches)
 cli.add_command(cmd_search_items)
-cli.add_command(cmd_find_all_loops)
 cli.add_command(cmd_find_all_loops_of_size)
 
 if __name__ == "__main__":

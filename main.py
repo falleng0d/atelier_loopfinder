@@ -45,9 +45,10 @@ def explain_relation(item_a: model.Item, item_b: model.Item) -> str:
 	try:
 		relation_a = item_uses_ingredient(item_b, item_a)
 		relation_b = item_uses_ingredient(item_a, item_b)
-		return f"{relation_a.ingredient.Name}({relation_a.MatchingIngredientRequirement}) " \
-		       f"<-> {relation_b.ingredient
-		.Name}({relation_b.MatchingIngredientRequirement})"
+		return f"{relation_a.ingredient.Name}" \
+		       f"({relation_a.MatchingIngredientRequirement}) <-> " \
+		       f"{relation_b.ingredient.Name}" \
+		       f"({relation_b.MatchingIngredientRequirement})"
 
 	# relation_a = item_uses_ingredient(item_b, item_a)
 	# relation_b = item_uses_ingredient(item_a, item_b)
@@ -66,17 +67,16 @@ def explain_relation(item_a: model.Item, item_b: model.Item) -> str:
 	# Check if {item_a} is used to craft {item_b}
 	try:
 		relation = item_uses_ingredient(item_b, item_a)
-		return f"{relation.ingredient.Name}[{relation.MatchingIngredientRequirement}] -> [{
-		relati
-		}on.MatchingIngredientType}]{relation.item.Name}"
+		return f"{relation.ingredient.Name}[{relation.MatchingIngredientRequirement}] -> " \
+		       f"[{relation.MatchingIngredientType}]{relation.item.Name}"
 	except ValueError:
 		pass
 
 	# Check if {item_b} is used to craft {item_a}
 	try:
 		relation = item_uses_ingredient(item_a, item_b)
-		return f"{relation.ingredient.Name}[{relation.MatchingIngredientRequirement}] <- [" \
-		       f"{relation.MatchingIngredientType}]{relation.item.Name}"
+		return f"{relation.ingredient.Name}[{relation.MatchingIngredientRequirement}] <- " \
+		       f"[{relation.MatchingIngredientType}]{relation.item.Name}"
 	except ValueError:
 		pass
 

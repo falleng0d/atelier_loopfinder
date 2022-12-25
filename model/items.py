@@ -1,9 +1,8 @@
 from __future__ import annotations
 
+import csv
 from typing import List
 
-import yaml
-import csv
 from pydantic import BaseModel
 
 class Item(BaseModel):
@@ -15,11 +14,6 @@ class Item(BaseModel):
 
 class Model(BaseModel):
     items: List[Item]
-
-def load_yaml_data(file: str) -> Model:
-    with open(file) as f:
-        data = Model.parse_obj(yaml.safe_load(f))
-    return data
 
 def load_csv_data(file: str) -> Model:
     """

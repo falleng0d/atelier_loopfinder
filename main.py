@@ -49,18 +49,6 @@ def explain_relation(item_a: model.Item, item_b: model.Item) -> str:
 		       f"({relation_a.MatchingIngredientRequirement}) <-> " \
 		       f"{relation_b.ingredient.Name}" \
 		       f"({relation_b.MatchingIngredientRequirement})"
-
-	# relation_a = item_uses_ingredient(item_b, item_a)
-	# relation_b = item_uses_ingredient(item_a, item_b)
-	# explanation = f"{relation_a.ingredient.Name}" \
-	#               f"[{relation_a.MatchingIngredientRequirement}] -> " \
-	#               f"[{relation_a.MatchingIngredientType}]" \
-	#               f"{relation_a.item.Name}\n"
-	# explanation += f"{relation_b.ingredient.Name}" \
-	#                f"[{relation_b.MatchingIngredientRequirement}] -> " \
-	#                f"[{relation_b.MatchingIngredientType}]" \
-	#                f"{relation_b.item.Name}\n"
-	# return explanation
 	except ValueError:
 		pass
 

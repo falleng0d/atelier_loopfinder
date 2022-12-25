@@ -24,7 +24,8 @@ class UsesRelation:
 
 def item_uses_ingredient(item: model.Item, ingredient: model.Item) -> UsesRelation:
 	"""
-	Given an item and an ingredient, check if the item uses the ingredient as an ingredient.
+	Given an item and an ingredient, check if the item uses the ingredient as an
+	ingredient.
 	If the item uses the ingredient, return the UsesRelation.
 	"""
 	if ingredient.Name in item.Recipe:
@@ -44,7 +45,9 @@ def explain_relation(item_a: model.Item, item_b: model.Item) -> str:
 	try:
 		relation_a = item_uses_ingredient(item_b, item_a)
 		relation_b = item_uses_ingredient(item_a, item_b)
-		return f"{relation_a.ingredient.Name}({relation_a.MatchingIngredientRequirement}) <-> {relation_b.ingredient.Name}({relation_b.MatchingIngredientRequirement})"
+		return f"{relation_a.ingredient.Name}({relation_a.MatchingIngredientRequirement}) " \
+		       f"<-> {relation_b.ingredient
+		.Name}({relation_b.MatchingIngredientRequirement})"
 
 	# relation_a = item_uses_ingredient(item_b, item_a)
 	# relation_b = item_uses_ingredient(item_a, item_b)
@@ -63,14 +66,17 @@ def explain_relation(item_a: model.Item, item_b: model.Item) -> str:
 	# Check if {item_a} is used to craft {item_b}
 	try:
 		relation = item_uses_ingredient(item_b, item_a)
-		return f"{relation.ingredient.Name}[{relation.MatchingIngredientRequirement}] -> [{relation.MatchingIngredientType}]{relation.item.Name}"
+		return f"{relation.ingredient.Name}[{relation.MatchingIngredientRequirement}] -> [{
+		relati
+		}on.MatchingIngredientType}]{relation.item.Name}"
 	except ValueError:
 		pass
 
 	# Check if {item_b} is used to craft {item_a}
 	try:
 		relation = item_uses_ingredient(item_a, item_b)
-		return f"{relation.ingredient.Name}[{relation.MatchingIngredientRequirement}] <- [{relation.MatchingIngredientType}]{relation.item.Name}"
+		return f"{relation.ingredient.Name}[{relation.MatchingIngredientRequirement}] <- [" \
+		       f"{relation.MatchingIngredientType}]{relation.item.Name}"
 	except ValueError:
 		pass
 
@@ -81,7 +87,8 @@ def explain_loop(loop: List[model.Item]) -> str:
 	Given a loop, explain how each sequential pair of items in the loop is related.
 	"""
 
-	# For each pair {item_a} and {item_b}, with b coming after a. Check if {item_a} and {item_b} are used to craft each other.
+	# For each pair {item_a} and {item_b}, with b coming after a. Check if {item_a} and {
+	# item_b} are used to craft each other.
 	expl = "- "
 	round_loop = loop + [loop[0]]
 	for i in range(len(round_loop) - 1):
@@ -99,7 +106,8 @@ def explain_loop(loop: List[model.Item]) -> str:
 		expl += click.style(f'[{relation_a.MatchingIngredientType}]',
 		                    fg='magenta')
 		expl += relation_a.item.Name
-	# If any of the items in the loop has len(item.Effects) > 0, then add the effects to the explanation
+	# If any of the items in the loop has len(item.Effects) > 0, then add the effects to
+	# the explanation
 	if any(len(item.Effects) > 0 for item in loop):
 		expl += '\n\n  Items with effects: '
 		for item in loop:
@@ -116,7 +124,8 @@ def explain_loop_simplified(loop: List[model.Item]) -> str:
 	Given a loop, explain how each sequential pair of items in the loop is related.
 	"""
 
-	# For each pair {item_a} and {item_b}, with b coming after a. Check if {item_a} and {item_b} are used to craft each other.
+	# For each pair {item_a} and {item_b}, with b coming after a. Check if {item_a} and {
+	# item_b} are used to craft each other.
 	explanation = ""
 	for i in range(len(loop)):
 		item = loop[i]
@@ -165,7 +174,8 @@ def find_is_used_as_ingredient_of(item: model.Item, items: List[model.Item]) -> 
 	model.Item]:
 	"""
 	Given a list of items, find all items that uses {item} as ingredient.
-	For an item to be considered a match, it must have {item} in its Recipe list or any of its types.
+	For an item to be considered a match, it must have {item} in its Recipe list or any
+	of its types.
 	"""
 	matches = []
 	for i in items:
@@ -182,7 +192,8 @@ def find_is_used_as_ingredient_of(item: model.Item, items: List[model.Item]) -> 
 def find_ingredients_of(item: model.Item, items: List[model.Item]) -> List[model.Item]:
 	"""
 	Given a list of items, find all items that are used to craft {item}.
-	For an item to be considered a match, it must have {item} in its Recipe list or any of its types.
+	For an item to be considered a match, it must have {item} in its Recipe list or any
+	of its types.
 	"""
 	matches = []
 	for i in items:
@@ -207,7 +218,8 @@ def find_bidireactional_related_items(item: model.Item, items: List[model.Item])
 	"""
 	Given a list of items, find all items that are related to {item} in both directions.
 
-	A bidirectional relationship between items is when both items can be crafted from each other
+	A bidirectional relationship between items is when both items can be crafted from
+	each other
 
 	Returns a list of items that are related to {item} in both directions.
 	"""
@@ -231,7 +243,8 @@ def find_bidireactional_related_pairs(item: model.Item, items: List[model.Item])
 	"""
 	Given a list of items, find all items that are related to {item} in both directions.
 
-	A bidirectional relationship between items is when both items can be crafted from each other
+	A bidirectional relationship between items is when both items can be crafted from
+	each other
 
 	Returns a list of pairs of items that are related to each other in both directions.
 	"""
@@ -344,7 +357,8 @@ def cmd_search_items(search_term: str, search_effect: str | None,
 
 	if search_effect is not None and search_term == "":
 		matches = [item for item in search_scope if
-		           any([search_effect.lower() in effect.lower() for effect in item.Effects])]
+		           any([search_effect.lower() in effect.lower() for effect in
+		                item.Effects])]
 		click.echo(f"Found {len(matches)} items of with effect {search_term}\n")
 		click.echo(describe_items(matches))
 	if search_effect is not None and search_term != "":

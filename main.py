@@ -428,9 +428,11 @@ all_items: list[Item]
 def cli() -> None:
 	global materials, recipes, all_items
 
-	materials = model.load_csv_data("assets/ryza_materials.csv")
-	recipes = model.load_csv_data("assets/ryza_recipes.csv")
-	all_items = materials.items + recipes.items
+	#materials = model.load_csv_data("assets/ryza_materials.csv", model.ryza_csv_load_strategy)
+	#recipes = model.load_csv_data("assets/ryza_recipes.csv", model.ryza_csv_load_strategy)
+	#all_items = materials.items + recipes.items
+	recipes = model.load_csv_data("assets/ryza_2_recipes.csv", model.ryza_csv_load_strategy)
+	all_items = recipes.items
 
 cli.add_command(cmd_find_recipe_matches)
 cli.add_command(cmd_search_items)
